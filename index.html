@@ -15,10 +15,28 @@
 </style>
 </head>
 <body>
-<iframe
-  src="https://script.google.com/macros/s/AKfycbxQLEbmZLYDiYZNUnNdeONWRHBE2syWswn48mTg1MEGPUpaDoQRfRT2iX5aNfNGr83f6w/exec?v=14"
-  scrolling="yes"
-  allowfullscreen
-></iframe>
+<iframe id="app" scrolling="yes" allowfullscreen></iframe>
+<script>
+  // The app's own storage lives inside Google's iframe, which iPhones wipe.
+  // So this page (github.io) also remembers the therapist's name/email and hands it to the app.
+  var APP_URL = 'https://script.google.com/macros/s/AKfycbxQLEbmZLYDiYZNUnNdeONWRHBE2syWswn48mTg1MEGPUpaDoQRfRT2iX5aNfNGr83f6w/exec?v=15';
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem('gt_user') || 'null'); } catch (e) {}
+  var src = APP_URL;
+  if (user && user.name && user.email) {
+    src += '&n=' + encodeURIComponent(user.name) + '&e=' + encodeURIComponent(user.email);
+  }
+  document.getElementById('app').src = src;
+
+  window.addEventListener('message', function (ev) {
+    var host = '';
+    try { host = new URL(ev.origin).hostname; } catch (e) { return; }
+    if (!/(^|\.)googleusercontent\.com$|(^|\.)google\.com$/.test(host)) return;
+    var d = ev.data;
+    if (d && d.type === 'gt_user' && d.name && d.email) {
+      try { localStorage.setItem('gt_user', JSON.stringify({ name: d.name, email: d.email })); } catch (e) {}
+    }
+  });
+</script>
 </body>
 </html>
